@@ -7,11 +7,16 @@ const AdminPanel = () => {
   const [loading, setLoading] = useState(false);
 
   const handleStartGame = async () => {
+    console.log('🔑 Admin Token:', adminToken);
+    console.log('🏠 Room Code:', roomCode);
+    
     setLoading(true);
     try {
       await startGame(roomCode, adminToken);
       addNotification('Game started!', 'success');
     } catch (err) {
+      console.error('❌ Start Game Error:', err);
+      console.error('❌ Error Response:', err.response?.data);
       addNotification(err.response?.data?.error || 'Failed to start game', 'error');
     } finally {
       setLoading(false);
