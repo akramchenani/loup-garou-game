@@ -7,18 +7,16 @@ const HomePage = () => {
   const navigate = useNavigate();
   const { setRoom, setRoomCode, setAdminToken, setPlayer } = useGameStore();
   
-  const [mode, setMode] = useState(null); // 'create' or 'join'
+  const [mode, setMode] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  // Create room state
   const [maxPlayers, setMaxPlayers] = useState(8);
   const [numWolves, setNumWolves] = useState(2);
   const [numSeers, setNumSeers] = useState(1);
   const [numProtectors, setNumProtectors] = useState(1);
   const [numHunters, setNumHunters] = useState(1);
   
-  // Join room state
   const [roomCode, setRoomCodeInput] = useState('');
   const [nickname, setNickname] = useState('');
 
@@ -36,16 +34,20 @@ const HomePage = () => {
         num_hunters: numHunters,
       });
 
+      console.log('✅ Room created:', data);
+      console.log('🔑 Admin token received:', data.admin_token);
+
       setRoom(data.room);
       setRoomCode(data.room.code);
       setAdminToken(data.admin_token);
       
-      // Store in localStorage
+      // Store in localStorage - THIS WAS MISSING!
       localStorage.setItem('adminToken', data.admin_token);
       localStorage.setItem('roomCode', data.room.code);
       
       navigate(`/room/${data.room.code}`);
     } catch (err) {
+      console.error('❌ Create room error:', err);
       setError(err.response?.data?.error || 'Failed to create room');
     } finally {
       setLoading(false);
@@ -63,7 +65,6 @@ const HomePage = () => {
       setPlayer(data.player, data.player_token);
       setRoomCode(roomCode.toUpperCase());
       
-      // Store in localStorage
       localStorage.setItem('playerToken', data.player_token);
       localStorage.setItem('playerId', data.player.id);
       localStorage.setItem('roomCode', roomCode.toUpperCase());
