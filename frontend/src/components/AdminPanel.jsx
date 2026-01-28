@@ -1,10 +1,23 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { startGame, advancePhase } from '../services/api';
+import { startGame, advancePhase, getRoom, getGameState } from '../services/api';
 
 const AdminPanel = () => {
-  const { roomCode, adminToken, room, gameState, addNotification } = useGameStore();
+  const { roomCode, adminToken, room, gameState, setRoom, setGameState, addNotification } = useGameStore();
   const [loading, setLoading] = useState(false);
+
+  const refreshGameState = async () => {
+    try {
+      const [roomData, stateData] = await Promise.all([
+        getRoom(roomCode),
+        getGameState(roomCode)
+      ]);
+      setRoom(roomData);
+      setGameState(stateData);
+    } catch (err) {
+      console.error('Failed to refresh game state:', err);
+    }
+  };
 
   const handleStartGame = async () => {
     console.log('🔑 Admin Token:', adminToken);
@@ -14,11 +27,17 @@ const AdminPanel = () => {
     try {
       await startGame(roomCode, adminToken);
       addNotification('Game started!', 'success');
+      
+      // Wait a moment then refresh state
+      setTimeout(async () => {
+        await refreshGameState();
+        window.location.reload(); // Force reload to show role modal
+      }, 1000);
+      
     } catch (err) {
       console.error('❌ Start Game Error:', err);
       console.error('❌ Error Response:', err.response?.data);
       addNotification(err.response?.data?.error || 'Failed to start game', 'error');
-    } finally {
       setLoading(false);
     }
   };
@@ -28,6 +47,12 @@ const AdminPanel = () => {
     try {
       await advancePhase(roomCode, adminToken);
       addNotification('Phase advanced', 'success');
+      
+      // Refresh state after advancing
+      setTimeout(async () => {
+        await refreshGameState();
+      }, 500);
+      
     } catch (err) {
       addNotification(err.response?.data?.error || 'Failed to advance phase', 'error');
     } finally {
